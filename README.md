@@ -20,3 +20,8 @@ to build the container. Then run
 docker run -p 6000:6000 gamesapi
 ```
 to run the container locally.
+
+To test api locally, run the following command in your terminal after flask loads and the tqdm loading bar has completed it's process.
+```
+pytest test_api.py
+```
