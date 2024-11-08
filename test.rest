@@ -1,0 +1,67 @@
+### Test Query Endpoint with Initial Query for keyword matching
+
+POST http://127.0.0.1:5000/query
+Content-Type: application/json
+
+{
+    "query": "What is a game related to Monkeys"
+}
+
+### Follow-up Query (testing memory) for keyword matching
+
+POST http://127.0.0.1:5000/query
+Content-Type: application/json
+
+{
+    "query": "Can you tell me more about it?"
+}
+
+### Another Follow-up Query (continued conversation) for keyword matching
+
+POST http://127.0.0.1:5000/query
+Content-Type: application/json
+
+{
+    "query": "Who developed this game?"
+}
+
+### Test change game
+
+POST http://127.0.0.1:5000/query
+Content-Type: application/json
+
+{
+    "query": "What is a game related to Shooting"
+}
+
+### Test row based queries  
+POST http://127.0.0.1:5000/query
+Content-Type: application/json
+
+{
+    "query": "How many games are in your knowledge base"
+}
+
+### Test row based queries  
+POST http://127.0.0.1:5000/query
+Content-Type: application/json
+
+{
+    "query": "How many game developers are in your knowledge base"
+}
+
+### Test row based queries  
+POST http://127.0.0.1:5000/query
+Content-Type: application/json
+
+{
+    "query": "What kind of information can I ask you about games?"
+}
+
+
+
+
+### Reset Memory
+
+POST http://127.0.0.1:5000/reset
+Content-Type: application/json
