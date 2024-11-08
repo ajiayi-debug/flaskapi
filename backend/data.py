@@ -33,7 +33,7 @@ def data_info_col(csv, output_csv="column_summary_info.csv"):
     
     # Generate summaries for each column
     column_summaries = []
-    for col in tqdm(column_names, desc="Processing column summary"):
+    for col in tqdm(column_names, desc="Processing metadata"):
         column_data = df[col].tolist()
         #call gpt 4o to generate summary per column and their respective column name for context
         summary = summarise_cols(col,column_data)

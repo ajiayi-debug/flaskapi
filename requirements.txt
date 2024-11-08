@@ -1,5 +1,5 @@
-python-dotenv
-openai
-flask
-langchain-community
-langchain-openai
+Flask==3.0.3
+openai==1.54.3
+pandas
+python-dotenv==1.0.1
+tqdm==4.66.5

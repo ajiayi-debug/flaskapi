@@ -1,6 +1,6 @@
 ### Test Query Endpoint with Initial Query for keyword matching
 
-POST http://127.0.0.1:5000/query
+POST http://127.0.0.1:5001/query
 Content-Type: application/json
 
 {
@@ -9,7 +9,7 @@ Content-Type: application/json
 
 ### Follow-up Query (testing memory) for keyword matching
 
-POST http://127.0.0.1:5000/query
+POST http://127.0.0.1:5001/query
 Content-Type: application/json
 
 {
@@ -18,7 +18,7 @@ Content-Type: application/json
 
 ### Another Follow-up Query (continued conversation) for keyword matching
 
-POST http://127.0.0.1:5000/query
+POST http://127.0.0.1:5001/query
 Content-Type: application/json
 
 {
@@ -27,7 +27,7 @@ Content-Type: application/json
 
 ### Test change game
 
-POST http://127.0.0.1:5000/query
+POST http://127.0.0.1:5001/query
 Content-Type: application/json
 
 {
@@ -35,7 +35,7 @@ Content-Type: application/json
 }
 
 ### Test row based queries  
-POST http://127.0.0.1:5000/query
+POST http://127.0.0.1:5001/query
 Content-Type: application/json
 
 {
@@ -43,7 +43,7 @@ Content-Type: application/json
 }
 
 ### Test row based queries  
-POST http://127.0.0.1:5000/query
+POST http://127.0.0.1:5001/query
 Content-Type: application/json
 
 {
@@ -51,7 +51,7 @@ Content-Type: application/json
 }
 
 ### Test row based queries  
-POST http://127.0.0.1:5000/query
+POST http://127.0.0.1:5001/query
 Content-Type: application/json
 
 {
