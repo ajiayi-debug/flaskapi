@@ -25,3 +25,5 @@ To test api locally, run the following command in your terminal after flask load
 ```
 pytest test_api.py
 ```
+### Cloud deployment
+### CI/CD process
