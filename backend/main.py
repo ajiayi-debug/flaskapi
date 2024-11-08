@@ -46,7 +46,7 @@ summary_data = load_summary_data()
 #base api call to check if api is working
 @app.route("/")
 def home():
-    return "You have successfully called the base api"
+    return "You have successfully called the base api! "
 
 # POST request for RAG of rows or context-based question answering for column-based queries
 #Chat history is ALWAYS saved for instances of switching between row based and column based queries
