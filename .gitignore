@@ -4,3 +4,4 @@ __pycache__
 .DS_Store
 column_summary_info.csv
 test.rest
+.pytest_cache
