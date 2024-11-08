@@ -34,7 +34,7 @@ jobs:
       run: docker build -t ${{ secrets.DOCKER_USERNAME }}/gamesapi:latest .
 
     - name: Run Docker container
-      run: docker run -d -p 5001:5000 --name gamesapi_container ${{ secrets.DOCKER_USERNAME }}/flaskapi:latest
+      run: docker run -d -p 5001:5000 --name gamesapi_container ${{ secrets.DOCKER_USERNAME }}/gamesapi:latest
 
     - name: View Docker logs for troubleshooting
       run: docker logs gamesapi_container
