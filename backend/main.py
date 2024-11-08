@@ -1,11 +1,17 @@
 import os
+import secrets
 from flask import Flask, request, jsonify, session
 from dotenv import load_dotenv
 from pathlib import Path
-import secrets
 import pandas as pd
 from data import *
 from gpt import *
+import logging
+from openai.error import OpenAIError
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Load any existing .env file
 env_path = Path('.') / '.env'
@@ -31,58 +37,91 @@ else:
 app = Flask(__name__)
 app.secret_key = secret_key
 
-# File path for the summary CSV
+# File path for the metadata CSV
 SUMMARY_CSV = "column_summary_info.csv"
 
-# Generate or load the summary CSV once
+# Generate or load the metadata CSV once
 def load_summary_data():
     if not os.path.exists(SUMMARY_CSV):
         data_info_col("games_description.csv", output_csv=SUMMARY_CSV)
     return pd.read_csv(SUMMARY_CSV).to_dict(orient="records")
 
-# Load the summary data once when the app starts
+# Load the meta data once when the app starts
 summary_data = load_summary_data()
 
-#base api call to check if api is working
 @app.route("/")
 def home():
-    return "You have successfully called the base api! "
+    return "You have successfully called the base API! "
 
-# POST request for RAG of rows or context-based question answering for column-based queries
-#Chat history is ALWAYS saved for instances of switching between row based and column based queries
+# POST request for RAG of rows as context (plus chat history) for question answering or metadata as context (plus chat history) for column based queries
 @app.route('/query', methods=['POST'])
 def querykeywordmatching():
-    user_input = request.json.get('query', '')
+    if not request.is_json:
+        logger.warning("Request must be in JSON format.")
+        return jsonify({"error": "Request must be in JSON format"}), 400
 
-    # Initialize session memory if it doesn't exist
-    if 'conversation' not in session:
-        session['conversation'] = []
+    data = request.get_json()
+    user_input = data.get('query', '').strip()
 
-    # Retrieve relevant data from CSV for row-based retrieval
-    relevant_data = retrieve_relevant_rows(user_input, 'games_description.csv')
+    if not user_input:
+        logger.warning("Query field is required and cannot be empty.")
+        return jsonify({"error": "Query field is required and cannot be empty"}), 400
 
-    # Retrieve conversation history from session
-    conversation_history = session['conversation']
-    
-    # Determine if the query is asking for metadata (column-wise) or row-based data
-    row_col = query_type(user_input,conversation_history)        
-    if row_col == 'Metadata':
-        # Generate response based on column-wise (metadata) information
-        answer = generator_rag_colbase(conversation_history, user_input, summary_data)                    
-    else:
-        # Generate response based on row-wise retrieval
-        answer = generator_rag_rowbase(conversation_history, user_input, relevant_data)  
+    try:
+        # Initialize session memory if it doesn't exist
+        if 'conversation' not in session:
+            session['conversation'] = []
 
-    # Update conversation history in session
-    conversation_history.append({"user": user_input, "assistant": answer})
-    session['conversation'] = conversation_history
+        # Retrieve relevant data from CSV for row-based retrieval
+        relevant_data = retrieve_relevant_rows(user_input, 'games_description.csv')
 
-    return jsonify({"response": answer})
+        # Retrieve conversation history from session
+        conversation_history = session['conversation']
+        
+        # Determine if the query is asking for metadata (column-wise) or row-based data
+        row_col = query_type(user_input, conversation_history)
+        
+        if row_col == 'Metadata':
+            # Generate response based on column-wise (metadata) information
+            answer = generator_rag_colbase(conversation_history, user_input, summary_data)                    
+        else:
+            # Generate response based on row-wise retrieval
+            answer = generator_rag_rowbase(conversation_history, user_input, relevant_data)  
+
+        # Update conversation history in session
+        conversation_history.append({"user": user_input, "assistant": answer})
+        session['conversation'] = conversation_history
+
+        return jsonify({"response": answer})
+
+    except KeyError as e:
+        logger.error(f"Missing field: {e}")
+        return jsonify({"error": f"Missing field: {str(e)}"}), 400
+    except ValueError as e:
+        logger.error(f"Invalid value: {e}")
+        return jsonify({"error": str(e)}), 400
+    except OpenAIError as e:
+        logger.error(f"Query API service error: {e}")
+        return jsonify({"error": "Failed to connect to query API service"}), 502
+    except TimeoutError:
+        logger.error("Query API service timed out.")
+        return jsonify({"error": "The query API service timed out. Please try again later."}), 504
+    except Exception as e:
+        logger.error(f"Unexpected error: {e}")
+        return jsonify({"error": "An internal error occurred. Please try again later."}), 500
 
 @app.route('/reset', methods=['POST'])
 def reset():
     session.pop('conversation', None)
     return jsonify({"message": "Conversation reset."})
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return jsonify({"error": "Endpoint not found"}), 404
+
+@app.errorhandler(405)
+def method_not_allowed(e):
+    return jsonify({"error": "Method not allowed"}), 405
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000)
