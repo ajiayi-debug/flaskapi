@@ -7,7 +7,7 @@ import pandas as pd
 from data import *
 from gpt import *
 import logging
-from openai.error import OpenAIError
+from openai import OpenAIError
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -56,16 +56,21 @@ def home():
 # POST request for RAG of rows as context (plus chat history) for question answering or metadata as context (plus chat history) for column based queries
 @app.route('/query', methods=['POST'])
 def querykeywordmatching():
+    # Ensure request is JSON
     if not request.is_json:
         logger.warning("Request must be in JSON format.")
         return jsonify({"error": "Request must be in JSON format"}), 400
 
     data = request.get_json()
-    user_input = data.get('query', '').strip()
+    user_input = data.get('query', None)
 
-    if not user_input:
-        logger.warning("Query field is required and cannot be empty.")
-        return jsonify({"error": "Query field is required and cannot be empty"}), 400
+    # Handle empty or non-string query
+    if not isinstance(user_input, str):
+        return jsonify({"error": "Query must be a string."}), 400
+    if user_input is None or user_input.strip() == "":
+        return jsonify({"error": "Query field is required and cannot be empty."}), 400
+    
+    user_input = user_input.strip()
 
     try:
         # Initialize session memory if it doesn't exist
