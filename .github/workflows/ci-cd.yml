@@ -34,7 +34,7 @@ jobs:
       run: docker build -t ${{ secrets.DOCKER_USERNAME }}/gamesapi:latest .
 
     - name: Run Docker container
-      run: docker run -d -p 5001:5000 --name gamesapi_container ${{ secrets.DOCKER_USERNAME }}/gamesapi:latest
+      run: docker run -d -p 6000:6000 --name gamesapi_container ${{ secrets.DOCKER_USERNAME }}/gamesapi:latest
 
     - name: View Docker logs for troubleshooting
       run: docker logs gamesapi_container
@@ -42,7 +42,7 @@ jobs:
     - name: Wait for API to be ready
       run: |
         for i in {1..60}; do
-          if curl -s http://127.0.0.1:5001/; then
+          if curl -s http://127.0.0.1:6000/; then
             echo "API is up!"
             break
           fi
@@ -52,7 +52,7 @@ jobs:
 
     - name: Run Tests
       run: |
-        pytest test_api.py --base-url=http://127.0.0.1:5001
+        pytest test_api.py --base-url=http://127.0.0.1:6000
 
     - name: Stop Docker container
       run: docker stop gamesapi_container

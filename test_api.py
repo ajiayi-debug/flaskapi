@@ -1,6 +1,6 @@
 import requests
 
-BASE_URL = "http://127.0.0.1:5001"
+BASE_URL = "http://127.0.0.1:6000"
 
 # Test row retrieval query with a valid question based on row retrieval
 def test_row_query_endpoint():

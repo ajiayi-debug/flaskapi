@@ -14,7 +14,7 @@ COPY .env /app/.env
 COPY games_description.csv /app/games_description.csv
 
 # Expose the Flask port
-EXPOSE 5000
+EXPOSE 6000
 
 # Define environment variable for Flask
 ENV FLASK_APP=main.py
