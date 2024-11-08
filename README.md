@@ -11,7 +11,7 @@ create a .env file with the following api key(s):
 ```
 openai-api-key=[you openai api key]
 ```
-To run docker container (locally), run
+To start docker container locally, run
 ```
 docker build -t gamesapi .
 ```
