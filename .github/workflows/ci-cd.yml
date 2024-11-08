@@ -15,7 +15,6 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
-      
 
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -26,14 +25,10 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-    
+
     - name: Set up .env file with temporary keys for CI/CD
       run: |
-        echo "OPENAI_API_KEY=${{secrets.OPENAI_API_KEY }}" >> .env
-
-    - name: Run Tests
-      run: |
-        pytest test_api.py
+        echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v1
@@ -50,3 +45,22 @@ jobs:
         context: .
         push: true
         tags: ${{ secrets.DOCKER_USERNAME }}/flask-api:latest
+
+    # Run Docker container for testing
+    - name: Run Docker Container
+      run: |
+        docker run -d --name flask-api-container -p 5001:5000 ${{ secrets.DOCKER_USERNAME }}/flask-api:latest
+      # Ensure the container has time to start up before running tests
+
+    # Run Tests against the running container with port 5000 mapped to 5001
+    - name: Run API Tests
+      run: |
+        pytest test_api.py --base-url=http://127.0.0.1:5001
+      env:
+        BASE_URL: http://127.0.0.1:5001
+
+    # Stop and remove the container
+    - name: Stop and Remove Docker Container
+      run: |
+        docker stop flask-api-container
+        docker rm flask-api-container
