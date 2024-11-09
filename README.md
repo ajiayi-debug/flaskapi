@@ -1,9 +1,6 @@
 # Flask API for csv extraction
 A Flask API that accepts user queries via JSON payload, extract content from [games_description.csv](games_description.csv) file and generate response using OpenAI GPT4o model.
 
-## Overview of solution
-
-
 ## Instructions for project
 
 ### Local set up
@@ -25,7 +22,6 @@ docker run -p 6000:6000 gamesapi
 pytest test_api.py
 ```
 
-### Cloud deployment
 
 ### CI/CD process
 This project includes a [CI/CD pipeline](.github/workflows/ci-cd.yml) powered by GitHub Actions. The pipeline automates building, testing, and deploying the Docker image to DockerHub, ensuring that the latest version of the API is always production-ready.
@@ -91,4 +87,27 @@ Logs in into DockerHub using credentials stored in GitHub Secrets (DOCKER_USERNA
 
 **13) Push Docker Image to DockerHub (Only executes if all previous steps are successful):** 
 
-Push Docker image tagged as latest to DockerHub, making iomage available for deployment or further use (with latest updates).
+Push Docker image tagged as latest to DockerHub, making image available for deployment or further use (with latest updates).
+
+
+### Cloud deployment
+
+## Overview of solution
+
+### API Documentation
+
+#### Endpoints
+
+| **Endpoint**           | **Method** | **Description**                                     | **Request Example**                                                                                                                                                                      | **Expected Response**                                                                                                                                                                                                                                   |
+|------------------------|------------|-----------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `/`                    | `GET`      | Checks if the API is running                        | **Request:** <br> `GET http://127.0.0.1:6000/`                                                                                                                                            | **Response (200):** <br> `{ "message": "You have successfully called the base API!" }`                                                                                                                                                                 |
+| `/query`               | `POST`     | Sends a query for row or column-based (metadata) retrieval with chat history for context | **Headers:** <br> `{ "Content-Type": "application/json" }` <br> **Request:** <br> ``` POST http://127.0.0.1:6000/query { "query": "What is a game related to Monkeys?" } ```               | **Response (200):** <br> `{ "response": "Response from the GPT-4 model based on the query and context." }` <br> **Error - Empty Query (400):** <br> `{ "error": "Query field is required and cannot be empty." }` <br> **Error - Non-String Query (400):** <br> `{ "error": "Query must be a string." }` <br> **Error - Invalid JSON (400):** <br> `{ "error": "Request must be in JSON format." }` <br> **Error - Internal Error (500):** <br> `{ "error": "An internal error occurred. Please try again later." }` |
+| `/reset`               | `POST`     | Resets the session conversation history             | **Headers:** <br> `{ "Content-Type": "application/json" }` <br> **Request:** <br> `POST http://127.0.0.1:6000/reset`                                                                      | **Response (200):** <br> `{ "message": "Conversation reset." }`                                                                                                                                                                                       |
+| Any invalid endpoint   | `Any`      | Returns 404 if the endpoint is not found            | **Request:** <br> `POST http://127.0.0.1:6000/nonexistent`                                                                                                                                | **Error (404):** <br> `{ "error": "Endpoint not found" }`                                                                                                                                                                                             |
+| Any invalid method     | `Any`      | Returns 405 if the method is not allowed for the endpoint | **Request:** <br> `GET http://127.0.0.1:6000/query` (assuming `GET` is not allowed)                                                                                                       | **Error (405):** <br> `{ "error": "Method not allowed" }`                                                                                                                                                                                             |
+
+##### Usage Notes:
+- A [test file](test_api.py) has been created with these api call tests in mind which will automatically be implemented when you run the CI/CD process or manually implemented by running the following code in the terminal: `pytest test_api.py`
+- Use `curl`, Postman, or `.rest` files (download Rest Client by HuaChao Mao to run `.rest` files) in VS Code to test these API calls.
+- For `/query`, ensure the request body is in JSON format and that `"query"` is a non-empty string.
+
