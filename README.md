@@ -27,7 +27,8 @@ pytest test_api.py
 This project includes a [CI/CD pipeline](.github/workflows/ci-cd.yml) powered by GitHub Actions. The pipeline automates building, testing, and deploying the Docker image to DockerHub, ensuring that the latest version of the API is always production-ready.
 
 #### **Prerequisites**
-To enable CI/CD, ensure the following has been configured in GitHub Secrets (I have already configured using my credentials for docker and the open ai api key provided):
+To enable CI/CD, ensure the following has been configured in GitHub Secrets (I have already configured using my credentials for Docker and the OpenAI API key provided):
+
 **GitHub Secrets:**
 - OPENAI_API_KEY: API key for OpenAI, required for calling GPT4o model for API usage
 - DOCKER_USERNAME: DockerHub username, required to push Docker image to DockerHub
