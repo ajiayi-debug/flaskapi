@@ -133,12 +133,22 @@ With every run of the CI/CD process updating the Docker image in DockerHub after
    - **Listeners**: Add a listener on port 80.
    - **Target Group**: Create a target group for your ECS service.
    - Attach your ECS service to this load balancer.
-   
+5) Configure Automatic Image Updates and Redeployment
+   - **Create an EventBridge Rule** to detect Docker image updates on DockerHub and trigger a deployment in ECS.
+   - **Set Up AWS CodePipeline:**
+     * Create a pipeline that polls DockerHub for changes and redeploys the ECS service whenever a new image is detected.
+     * In CodePipeline, set up:
+       - **Source Stage:** Configure polling on DockerHub or an ECR repository.
+       - **Deploy Stage:** Use ECS as the deploy provider, pointing to your ECS cluster and service.
+   - This setup will ensure the ECS service automatically redeploys whenever a new Docker image is pushed to DockerHub (e.g., with each successful CI/CD run).
+     
 #### Testing API on cloud service
 Once the service is up and running, find its public IP or DNS (load balancer). You should be able to access the Flask API endpoint at http://<public-ip>:6000 or through load balancer's DNS, which will listen on port 80 and forward to port 6000 of the ECS task.
 
 ### Cloud architecture
-<img width="1115" alt="Screenshot 2024-11-09 at 4 40 15 PM" src="https://github.com/user-attachments/assets/7920902a-d86c-4088-b78c-c8b611fb55d0">
+
+<img width="1071" alt="Screenshot 2024-11-09 at 5 30 51 PM" src="https://github.com/user-attachments/assets/97a9adb0-6584-4c75-b5f9-9d9702b19b48">
+
 
 #### Components
 **Client**
