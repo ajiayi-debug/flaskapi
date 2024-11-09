@@ -1,5 +1,11 @@
 provider "aws" {
-  region = "us-east-1"  
+  region = "ap-southeast-1"  
+}
+
+# Allows for reusable variables
+variable "vpc_id" {}
+variable "subnet_ids" {
+  type = list(string)
 }
 
 # Create an ECS Cluster
@@ -11,7 +17,7 @@ resource "aws_ecs_cluster" "games_api_cluster" {
 resource "aws_security_group" "lb_security_group" {
   name        = "lb_security_group"
   description = "Allow inbound HTTP/HTTPS traffic"
-  vpc_id      = "vpc-12345678"  # Replace with the correct VPC ID
+  vpc_id      = var.vpc_id
 
   ingress {
     from_port   = 80
@@ -39,7 +45,7 @@ resource "aws_security_group" "lb_security_group" {
 resource "aws_security_group" "ecs_security_group" {
   name        = "ecs_security_group"
   description = "Allow traffic from load balancer only"
-  vpc_id      = "vpc-12345678"  # Replace with your VPC ID
+  vpc_id      = var.vpc_id
 
   ingress {
     from_port       = 6000
@@ -62,7 +68,7 @@ resource "aws_lb" "games_api_lb" {
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.lb_security_group.id]
-  subnets            = ["subnet-12345678", "subnet-87654321"]  # Replace with your subnet IDs
+  subnets            = var.subnet_ids
 }
 
 # Target Group for the Load Balancer
@@ -70,7 +76,7 @@ resource "aws_lb_target_group" "games_api_target_group" {
   name        = "games-api-target-group"
   port        = 6000
   protocol    = "HTTP"
-  vpc_id      = "vpc-12345678"  # Replace with your VPC ID
+  vpc_id      = var.vpc_id
   target_type = "ip"
 }
 
@@ -104,6 +110,14 @@ resource "aws_ecs_task_definition" "games_api_task" {
           hostPort      = 6000
         }
       ]
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          "awslogs-group"         = "/ecs/games-api"
+          "awslogs-region"        = "ap-southeast-1"  # Singapore region
+          "awslogs-stream-prefix" = "ecs"
+        }
+      }
     }
   ])
 }
@@ -117,7 +131,7 @@ resource "aws_ecs_service" "games_api_service" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    subnets         = ["subnet-12345678", "subnet-87654321"]  # Replace with your subnet IDs
+    subnets         = var.subnet_ids
     security_groups = [aws_security_group.ecs_security_group.id]
     assign_public_ip = true
   }
@@ -151,4 +165,10 @@ resource "aws_iam_role" "ecs_task_execution_role" {
   managed_policy_arns = [
     "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
   ]
+}
+
+# Log Group for ECS
+resource "aws_cloudwatch_log_group" "ecs_log_group" {
+  name              = "/ecs/games-api"
+  retention_in_days = 7
 }
