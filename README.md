@@ -16,12 +16,9 @@ docker build -t gamesapi .
 ```
 docker run -p 6000:6000 gamesapi
 ```
-
-4. Test the API locally by running the following command in your terminal after Flask server has loaded:
-```
-pytest test_api.py
-```
-
+### Local testing 
+I used a .rest file to test the API calls. To do this with the [test.rest](test.rest) file, download Rest Client by HuaChao Mao to run
+the .rest file, then click `send request` on any of the requests to test the API.
 
 ### CI/CD process
 This project includes a [CI/CD pipeline](.github/workflows/ci-cd.yml) powered by GitHub Actions. The pipeline automates building, testing, and deploying the Docker image to DockerHub, ensuring that the latest version of the API is always production-ready.
