@@ -180,6 +180,8 @@ Once the service is up and running, find its public IP or DNS (load balancer). Y
 **DockerHub**
 - Stores the Docker image ajiayidebug/gamesapi:latest.
 - Updated automatically with each successful CI/CD pipeline run, ensuring the latest application changes are deployed.
+**EventBridge**
+- Monitors DockerHub for any updates to the Docker image. When a new image is pushed, it triggers ECS to pull the updated image and redeploy the service automatically.
 
 #### Dataflow
 1. **Client to ALB**: The client sends an HTTP/HTTPS request to the Application Load Balancer (ALB) on port 80 (HTTP) or port 443 (HTTPS).
@@ -187,8 +189,7 @@ Once the service is up and running, find its public IP or DNS (load balancer). Y
 3. **ECS Cluster Response**: The ECS Fargate task processes the request and sends a response back to the ALB.
 4. **ALB to Client**: The ALB forwards the HTTP response from the ECS service back to the client.
 
-This architecture ensures that the API is securely accessible over the internet through an Application Load Balancer, which manages incoming traffic via HTTP and HTTPS. The backend containers running the API are isolated within a private subnet, providing an additional layer of security by restricting direct internet access. Furthermore, the CI/CD pipeline is configured to automatically update the Docker image on DockerHub with each successful pipeline run, enabling consistent deployment of the latest application changes and making updates more manageable and reliable.
-
+This architecture ensures that the API is securely accessible over the internet through an Application Load Balancer, which manages incoming traffic via HTTP and HTTPS. The backend containers running the API are isolated within a private subnet, providing an additional layer of security by restricting direct internet access. Furthermore, when the CI/CD pipeline automatically pushes the latest Docker image to DockerHub after a successful run, AWS EventBridge monitors DockerHub for these updates and triggers an update in ECS to pull the new image, ensuring that the deployed service always runs the latest version of the API. This setup reduces manual redeployment efforts and improves update consistency across environments.
 ## Overview of solution
 
 ### Starting the flask api:
