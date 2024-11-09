@@ -92,7 +92,12 @@ Push Docker image tagged as latest to DockerHub, making image available for depl
 
 ### Cloud deployment
 
+With every run of the CI/CD process updating my Docker image in my DockerHub, 
+
 ## Overview of solution
+
+### Starting the flask api:
+When starting the flask api, a metadata is generated from the [games_description.csv](games_description.csv). The metadata is a summary of each column of [games_description.csv](games_description.csv) and the number of rows for each column. This takes time to load as the column summary are not generated asynchronously (but does not take too long, about 1-2 minutes in local deployment).
 
 ### API Documentation
 
