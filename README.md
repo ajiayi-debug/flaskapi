@@ -136,11 +136,43 @@ With every run of the CI/CD process updating the Docker image in DockerHub after
    - **Listeners**: Add a listener on port 80.
    - **Target Group**: Create a target group for your ECS service.
    - Attach your ECS service to this load balancer.
-   - 
+   
 #### Testing API on cloud service
 Once the service is up and running, find its public IP or DNS (load balancer). You should be able to access the Flask API endpoint at http://<public-ip>:6000 or through load balancer's DNS, which will listen on port 80 and forward to port 6000 of the ECS task.
 
+### Cloud architecture
+<img width="1115" alt="Screenshot 2024-11-09 at 4 40 15 PM" src="https://github.com/user-attachments/assets/7920902a-d86c-4088-b78c-c8b611fb55d0">
 
+#### Components
+**Client**
+- Represents the end-user accessing the Flask API via HTTP requests over the internet.
+**Internet**
+- Provides the pathway for HTTP/HTTPS communication between the client and the AWS resources.
+**Virtual Private Cloud (VPC)**
+- The isolated network environment in AWS that houses both public and private subnets.
+- Ensures secure communication between the API, Load Balancer, and external clients.
+**Public Subnet**
+- Application Load Balancer (ALB):
+  * Routes incoming HTTP/HTTPS traffic to the ECS service in the private subnet.
+	* Port Configuration:
+    - Listens on port 80 for HTTP traffic.
+    - Listens on port 443 for HTTPS traffic (secure).
+	* ALB Security Group:
+    - Allows inbound traffic on ports 80 (HTTP) and 443 (HTTPS) from any source.
+    - Ensures that only permitted traffic can access the load balancer.
+**Private Subnet**
+- ECS Cluster:
+  * Hosts the Fargate task that runs the Flask API container.
+- ECS Security Group:
+  * Configured to allow inbound traffic only from the ALB’s security group on port 6000 (the port where the Flask API listens).
+- Task Definition:
+  * Specifies the container configuration, including:
+    - Docker image: ajiayidebug/gamesapi:latest from DockerHub, kept up-to-date through CI/CD.
+    - Resource limits and networking details.
+    - Port mapping: Maps port 80 from the load balancer to port 6000 on the ECS container.
+**DockerHub**
+- Stores the Docker image ajiayidebug/gamesapi:latest.
+- Updated automatically with each successful CI/CD pipeline run, ensuring the latest application changes are deployed.
 ## Overview of solution
 
 ### Starting the flask api:
