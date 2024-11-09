@@ -2,7 +2,6 @@ provider "aws" {
   region = "ap-southeast-1"  
 }
 
-# Allows for reusable variables
 variable "vpc_id" {}
 variable "subnet_ids" {
   type = list(string)
@@ -13,7 +12,7 @@ resource "aws_ecs_cluster" "games_api_cluster" {
   name = "games-api-cluster"
 }
 
-# Security Group for the Load Balancer (allows inbound HTTP/HTTPS traffic)
+# Security Group for the Load Balancer
 resource "aws_security_group" "lb_security_group" {
   name        = "lb_security_group"
   description = "Allow inbound HTTP/HTTPS traffic"
@@ -41,7 +40,7 @@ resource "aws_security_group" "lb_security_group" {
   }
 }
 
-# Security Group for ECS Task (allows traffic only from the load balancer)
+# Security Group for ECS Task
 resource "aws_security_group" "ecs_security_group" {
   name        = "ecs_security_group"
   description = "Allow traffic from load balancer only"
@@ -62,7 +61,7 @@ resource "aws_security_group" "ecs_security_group" {
   }
 }
 
-# Create an Application Load Balancer
+# Application Load Balancer
 resource "aws_lb" "games_api_lb" {
   name               = "games-api-lb"
   internal           = false
@@ -71,7 +70,7 @@ resource "aws_lb" "games_api_lb" {
   subnets            = var.subnet_ids
 }
 
-# Target Group for the Load Balancer
+# Target Group
 resource "aws_lb_target_group" "games_api_target_group" {
   name        = "games-api-target-group"
   port        = 6000
@@ -80,7 +79,7 @@ resource "aws_lb_target_group" "games_api_target_group" {
   target_type = "ip"
 }
 
-# Listener for the Load Balancer (HTTP on port 80)
+# Listener for Load Balancer
 resource "aws_lb_listener" "games_api_listener" {
   load_balancer_arn = aws_lb.games_api_lb.arn
   port              = 80
@@ -103,7 +102,7 @@ resource "aws_ecs_task_definition" "games_api_task" {
   container_definitions = jsonencode([
     {
       name      = "games-api-container"
-      image     = "ajiayidebug/gamesapi:latest"  # DockerHub image
+      image     = "ajiayidebug/gamesapi:latest"
       portMappings = [
         {
           containerPort = 6000
@@ -114,7 +113,7 @@ resource "aws_ecs_task_definition" "games_api_task" {
         logDriver = "awslogs"
         options = {
           "awslogs-group"         = "/ecs/games-api"
-          "awslogs-region"        = "ap-southeast-1"  # Singapore region
+          "awslogs-region"        = "ap-southeast-1"
           "awslogs-stream-prefix" = "ecs"
         }
       }
@@ -122,7 +121,7 @@ resource "aws_ecs_task_definition" "games_api_task" {
   ])
 }
 
-# ECS Service to Run the Task
+# ECS Service
 resource "aws_ecs_service" "games_api_service" {
   name            = "games-api-service"
   cluster         = aws_ecs_cluster.games_api_cluster.id
@@ -165,6 +164,57 @@ resource "aws_iam_role" "ecs_task_execution_role" {
   managed_policy_arns = [
     "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
   ]
+}
+
+# EventBridge Rule for Scheduled Trigger
+resource "aws_cloudwatch_event_rule" "games_api_schedule_rule" {
+  name                = "games-api-schedule-rule"
+  description         = "Triggers ECS task based on schedule"
+  schedule_expression = "rate(1 hour)"  # Adjust this schedule as needed
+}
+
+# IAM Policy for EventBridge to start ECS tasks
+resource "aws_iam_role_policy" "eventbridge_ecs_task_policy" {
+  name = "eventbridge-ecs-task-policy"
+  role = aws_iam_role.ecs_task_execution_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "ecs:RunTask",
+          "ecs:StartTask"
+        ]
+        Effect   = "Allow"
+        Resource = aws_ecs_task_definition.games_api_task.arn
+      },
+      {
+        Action = "iam:PassRole"
+        Effect = "Allow"
+        Resource = aws_iam_role.ecs_task_execution_role.arn
+      }
+    ]
+  })
+}
+
+# EventBridge Target to Run the ECS Task
+resource "aws_cloudwatch_event_target" "games_api_event_target" {
+  rule       = aws_cloudwatch_event_rule.games_api_schedule_rule.name
+  arn        = aws_ecs_cluster.games_api_cluster.arn
+  target_id  = "gamesApiTarget"
+
+  ecs_target {
+    task_definition_arn = aws_ecs_task_definition.games_api_task.arn
+    task_count          = 1
+    launch_type         = "FARGATE"
+
+    network_configuration {
+      subnets         = var.subnet_ids
+      security_groups = [aws_security_group.ecs_security_group.id]
+      assign_public_ip = true
+    }
+  }
 }
 
 # Log Group for ECS
