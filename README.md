@@ -92,7 +92,53 @@ Push Docker image tagged as latest to DockerHub, making image available for depl
 
 ### Cloud deployment
 
-With every run of the CI/CD process updating my Docker image in my DockerHub after all tests have run successfully, the 
+With every run of the CI/CD process updating the Docker image in DockerHub after all tests have run successfully, the Docker image will always be updated with the latest changes. To deploy the containerized application to AWS, follow the following steps:
+
+#### Prerequisites
+**1. DockerHub:** Ensure the Docker image is available on DockerHub and tagged as latest. The CI/CD pipeline should already handle pushing the latest image automatically.
+**2. AWS account:** Access to the AWS Management Console and permissions to manage ECS, IAM roles, and security groups.
+
+#### Step by step deployment
+1) Create an ECS cluster
+   - Go to the [ECS Console](https://us-east-2.signin.aws.amazon.com/oauth?client_id=arn%3Aaws%3Asignin%3A%3A%3Aconsole%2Fecs&code_challenge=fI1v0TFGTjotxDuR-tZMWngHkeR6OkhrVntSAkPa14I&code_challenge_method=SHA-256&response_type=code&redirect_uri=https%3A%2F%2Fconsole.aws.amazon.com%2Fecs%3FhashArgs%3D%2523%26isauthcode%3Dtrue%26oauthStart%3D1731135305079%26state%3DhashArgsFromTB_us-east-2_3d356fb352cd03e3)
+   - Click on **Create Cluster**
+   - Choose **Networking only** and click **Next Step**
+   - Name the cluster (I will name it as games-api-cluster) and click **Create**
+2) Define a Task Definition
+   - In the ECS console, go to **Task Definitions** and click **Create new Task Definition**.
+   - Select **Fargate** as the launch type, then click **Next step**.
+   - Configure the following settings:
+     * **Task Definition Name:** Enter a name (I would name as games-api-task).
+     * **Task Role:** Leave as None unless you have a specific IAM role.
+     * **Network Mode:** Select awsvpc (required for Fargate).
+    - Under Container Definitions, click **Add container**:
+      * **Container Name:** Name it (I would name it games-api-container).
+      * **Image:** Enter the Docker image path from DockerHub, i.e ajiayidebug/gamesapi:latest. This will pull the latest image version automatically.
+      * **Port Mappings:** Enter 6000
+    - Set **Task Memory** and **CPU** as required.
+    - Click **Create** to save the task definition.
+3) Create a service to run the task
+   - In the ECS console, go to **Clusters**, select your cluster, and click **Create** under **Services**.
+   - Configure the service:
+     * **Launch Type:** Select **Fargate**.
+     * **Task Definition:** Choose the task definition you created.
+     * **Service Name:** Enter a name (I would choose games-api-service).
+     * **Number of Tasks:** Set to 1 (Can scale later if needed).
+    - Under **VPC** and **Security Groups**:
+      * **VPC:** Select an existing VPC.
+      * **Subnets:** Select the appropriate subnets within the VPC.
+      * **Security Group:** Create or select a security group that allows inbound traffic on port 6000.
+    - **Auto-assign Public IP:** Enable this for public access.
+    - Click **Next step**, review your settings, and click **Create Service**.
+4) Set Up a Load Balancer for Public Access (optional but to prevent IP address from changing everytime session ends) 
+   - In the **EC2 Console**, go to **Load Balancers** and create an **Application Load Balancer**.
+   - **Listeners**: Add a listener on port 80.
+   - **Target Group**: Create a target group for your ECS service.
+   - Attach your ECS service to this load balancer.
+   - 
+#### Testing API on cloud service
+Once the service is up and running, find its public IP or DNS (load balancer). You should be able to access the Flask API endpoint at http://<public-ip>:6000 or through load balancer's DNS, which will listen on port 80 and forward to port 6000 of the ECS task.
+
 
 ## Overview of solution
 
