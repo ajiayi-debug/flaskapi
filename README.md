@@ -215,17 +215,17 @@ This solution is a Flask API that utilizes OpenAI’s GPT model to generate resp
    - **Logging**: Configured to capture important runtime information, which aids in debugging and monitoring API behavior.
 
 ### Solution Workflow
-**When the Flask API starts**
+#### **When the Flask API starts**
 - **Data Loading**: The games CSV file is loaded, and if not already created, the metadata CSV is generated.
 - **Metadata Generation**: Each column in the CSV is summarized using GPT-4, with the summary stored in column_summary_info.csv.
-**Handling a Query**
+#### **Handling a Query**
 - **Query Parsing**: Determines if the query is about specific data rows or column metadata.
 - **Row-based Queries**: Keywords are generated from the query, and relevant rows are retrieved based on these keywords.
 - **Column-based Queries**: Metadata CSV summaries provide context for column queries, allowing GPT-4o to generate responses based on column descriptions.
-**Chat history and Context Management**
+#### **Chat history and Context Management**
 - **Session Memory**: The system retains conversational context between interactions, helping GPT-4o provide coherent, context-aware responses.
 - **Context Length Control**: Chat history is trimmed to prevent issues with token limits in GPT-4, keeping the context length manageable.
-**CI/CD and Potential Cloud Deployment**
+#### **CI/CD and Potential Cloud Deployment**
 - **Automated Updates**: The CI/CD pipeline automatically builds and pushes Docker images to DockerHub upon successful tests. AWS EventBridge can monitor DockerHub for image updates, triggering ECS to pull the new image, ensuring the latest version is always deployed.
 
 ### API Documentation
