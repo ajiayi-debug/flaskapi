@@ -92,7 +92,7 @@ Push Docker image tagged as latest to DockerHub, making image available for depl
 
 ### Cloud deployment
 
-With every run of the CI/CD process updating my Docker image in my DockerHub, 
+With every run of the CI/CD process updating my Docker image in my DockerHub after all tests have run successfully, the 
 
 ## Overview of solution
 
