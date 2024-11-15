@@ -152,11 +152,14 @@ Once the service is up and running, find its public IP or DNS (load balancer). Y
 #### Components
 **Client**
 - Represents the end-user accessing the Flask API via HTTP requests over the internet.
+
 **Internet**
 - Provides the pathway for HTTP/HTTPS communication between the client and the AWS resources.
+
 **Virtual Private Cloud (VPC)**
 - The isolated network environment in AWS that houses both public and private subnets.
 - Ensures secure communication between the API, Load Balancer, and external clients.
+
 **Public Subnet**
 - Application Load Balancer (ALB):
   * Routes incoming HTTP/HTTPS traffic to the ECS service in the private subnet.
@@ -166,6 +169,7 @@ Once the service is up and running, find its public IP or DNS (load balancer). Y
 	* ALB Security Group:
     - Allows inbound traffic on ports 80 (HTTP) and 443 (HTTPS) from any source.
     - Ensures that only permitted traffic can access the load balancer.
+
 **Private Subnet**
 - ECS Cluster:
   * Hosts the Fargate task that runs the Flask API container.
@@ -176,6 +180,7 @@ Once the service is up and running, find its public IP or DNS (load balancer). Y
     - Docker image: ajiayidebug/gamesapi:latest from DockerHub, kept up-to-date through CI/CD.
     - Resource limits and networking details.
     - Port mapping: Maps port 80 from the load balancer to port 6000 on the ECS container.
+
 **DockerHub**
 - Stores the Docker image ajiayidebug/gamesapi:latest.
 - Updated automatically with each successful CI/CD pipeline run, ensuring the latest application changes are deployed.
